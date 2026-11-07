@@ -32,6 +32,9 @@ class LoginController extends State<Login> {
   void initState() {
     super.initState();
     _client = widget.client;
+    // --- قبول کردن گواهی SSL خودامضا برای اتصال به سرور ---
+    _client.httpClient.badCertificateCallback = (cert, host, port) => true;
+    // تنظیم سرور پیش‌فرض
     _client.homeserver = Uri.parse(AppConfig.defaultHomeserver);
   }
 
@@ -55,30 +58,10 @@ class LoginController extends State<Login> {
     });
 
     try {
-      // درخواست ثبت‌نام با شماره موبایل
-      await _client.register(
-        username: null,
-        password: null,
-        initialDeviceDisplayName: PlatformInfos.clientName,
-        auth: AuthenticationThreePidCreds(
-          type: AuthenticationTypes.msisdn,
-          threepidCreds: ThreepidCreds(
-            sid: '',
-            clientSecret: '',
-          ),
-        ),
-      );
-
-      // --- خطوط مربوط به session کامنت شدند ---
-      // if (response.session != null) {
-      //   _session = response.session;
-      //   if (mounted) {
-      //     // TODO: رفتن به صفحه کد تایید
-      //   }
-      // }
-      
-    } on MatrixException catch (exception) {
-      setState(() => phoneError = exception.errorMessage);
+      // رفتن به صفحه ثبت‌نام (کد تایید و نام و عکس)
+      if (mounted) {
+        context.go('/addaccount/register', extra: _client);
+      }
     } catch (exception) {
       setState(() => phoneError = exception.toString());
     } finally {
