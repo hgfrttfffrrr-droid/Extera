@@ -28,7 +28,6 @@ class LoginController extends State<Login> {
   bool loading = false;
 
   late Client _client;
-  String? _session;
 
   @override
   void initState() {
@@ -64,9 +63,12 @@ class LoginController extends State<Login> {
     });
 
     try {
-      // رفتن به صفحه ثبت‌نام (کد تایید و نام و عکس)
+      // رفتن به صفحه ثبت‌نام (کد تایید و نام و عکس) و پاس دادن شماره و کلاینت
       if (mounted) {
-        context.go('/addaccount/register', extra: _client);
+        context.go('/addaccount/register', extra: {
+          'client': _client,
+          'phone': phone,
+        });
       }
     } catch (exception) {
       setState(() => phoneError = exception.toString());
