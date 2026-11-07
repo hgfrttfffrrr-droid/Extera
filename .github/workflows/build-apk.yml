@@ -55,17 +55,31 @@ jobs:
           channel: stable
           cache: true
 
+      # بازسازی Keystore از Secrets
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/extera-release.keystore
+
+      # تنظیم فایل key.properties برای امضا
+      - name: Create key.properties
+        run: |
+          echo "storePassword=ExteraPass123!" > android/key.properties
+          echo "keyPassword=ExteraPass123!" >> android/key.properties
+          echo "keyAlias=extera" >> android/key.properties
+          echo "storeFile=extera-release.keystore" >> android/key.properties
+
       - name: Install dependencies
         run: flutter pub get
 
-      # تغییر اصلی: ساخت نسخه Debug به جای Release
+      # بیلد Release فقط برای معماری arm64 (اکثر گوشی‌ها)
       - name: Build APK
-        run: flutter build apk --debug --split-per-abi
+        run: flutter build apk --release --target-platform android-arm64
 
+      # آپلود فقط یک فایل APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Extera-Android-APKs-Debug
-          path: build/app/outputs/flutter-apk/*.apk
+          name: Extera-APK-Release
+          path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 7
