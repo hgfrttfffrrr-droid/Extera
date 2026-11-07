@@ -39,7 +39,6 @@ class SettingsView extends StatelessWidget {
     final matrix = Matrix.of(context);
     final theme = Theme.of(context);
     final borderRadius = BorderRadius.circular(AppConfig.borderRadius);
-    final showChatBackupBanner = controller.showChatBackupBanner;
     final activeRoute = GoRouter.of(
       context,
     ).routeInformationProvider.value.uri.path;
@@ -362,34 +361,7 @@ class SettingsView extends StatelessWidget {
                               );
                             },
                           ),
-                          if (showChatBackupBanner == null)
-                            ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: theme.colorScheme.secondary,
-                                child: Icon(
-                                  Icons.backup_outlined,
-                                  color: theme.colorScheme.onSecondary,
-                                ),
-                              ),
-                              title: Text(L10n.of(context).chatBackup),
-                              trailing:
-                                  const CircularProgressIndicator.adaptive(),
-                            )
-                          else
-                            SwitchListTile.adaptive(
-                              controlAffinity: ListTileControlAffinity.trailing,
-                              value: controller.showChatBackupBanner == false,
-                              secondary: CircleAvatar(
-                                backgroundColor: theme.colorScheme.secondary,
-                                child: Icon(
-                                  Icons.backup_outlined,
-                                  color: theme.colorScheme.onSecondary,
-                                ),
-                              ),
-                              title: Text(L10n.of(context).chatBackup),
-                              onChanged: controller.firstRunBootstrapAction,
-                            ),
-                          const ListDivider(),
+                          // بخش پشتیبان‌گیری از چت (E2EE) حذف شد
                           ListTile(
                             title: Text(L10n.of(context).updateCheckTitle),
                             leading: CircleAvatar(
@@ -502,24 +474,7 @@ class SettingsView extends StatelessWidget {
                             onTap: () =>
                                 context.go('/rooms/settings/notifications'),
                           ),
-                          const ListDivider(),
-                          ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: theme.colorScheme.primary,
-                              child: Icon(
-                                Icons.shield_outlined,
-                                color: theme.colorScheme.onPrimary,
-                              ),
-                            ),
-                            title: Text(L10n.of(context).security),
-                            onTap: () => context.go('/rooms/settings/security'),
-                            tileColor:
-                                activeRoute.startsWith(
-                                  '/rooms/settings/security',
-                                )
-                                ? theme.colorScheme.surfaceContainerHigh
-                                : null,
-                          ),
+                          // بخش تنظیمات امنیتی (security) حذف شد
                           const ListDivider(),
                           ListTile(
                             leading: CircleAvatar(
