@@ -19,17 +19,23 @@ abstract class AppConfig {
   static String? _applicationWelcomeMessage;
 
   static String? get applicationWelcomeMessage => _applicationWelcomeMessage;
-  static String _defaultHomeserver = 'extera.xyz';
+  
+  // --- آدرس سرور اختصاصی شما ---
+  static String _defaultHomeserver = 'https://193.93.169.211';
 
   static bool alreadyCheckedUpdates = false;
 
   static String get defaultHomeserver => _defaultHomeserver;
   static const Color chatColor = primaryColor;
-  static const bool allowOtherHomeservers = true;
+  
+  // --- غیرفعال کردن امکان انتخاب سرور دیگر ---
+  static const bool allowOtherHomeservers = false;
+  
   static const bool enableRegistration = true;
   static const Color primaryColor = Color(0xFF5625BA);
   static const Color primaryColorLight = Color(0xFFCCBDEA);
   static const Color secondaryColor = Color(0xFF41a2bc);
+  
   static String _privacyUrl =
       'https://github.com/ExteraApp/Extera/blob/main/PRIVACY.md';
 
@@ -66,11 +72,14 @@ abstract class AppConfig {
   static const String recentEmojisAccountDataKey = 'io.element.recent_emoji';
   static const double borderRadius = 18.0;
   static const double columnWidth = 360.0;
-  static final Uri homeserverList = Uri(
-    scheme: 'https',
-    host: 'servers.joinmatrix.org',
-    path: 'servers.json',
-  );
+  
+  // --- لیست سرورهای عمومی حذف شد تا فقط سرور شما نمایش داده شود ---
+  // static final Uri homeserverList = Uri(
+  //   scheme: 'https',
+  //   host: 'servers.joinmatrix.org',
+  //   path: 'servers.json',
+  // );
+  
   static const Set<String> defaultReactions = {'👍', '❤️', '😂', '😮', '😢'};
 
   // See CREDITS.md
@@ -80,16 +89,6 @@ abstract class AppConfig {
   };
 
   static void loadFromJson(Map<String, dynamic> json) {
-    // if (json['chat_color'] != null) {
-    //   try {
-    //     colorSchemeSeed = Color(json['chat_color']);
-    //   } catch (e) {
-    //     Logs().w(
-    //       'Invalid color in config.json! Please make sure to define the color in this format: "0xffdd0000"',
-    //       e,
-    //     );
-    //   }
-    // }
     if (json['application_name'] is String) {
       _applicationName = json['application_name'];
     }
