@@ -1,10 +1,10 @@
+
 import java.util.Properties
 import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -13,20 +13,19 @@ if (file("google-services.json").exists()) {
 }
 
 configurations.all {
-    // Use the latest version published: https://central.sonatype.com/artifact/com.google.crypto.tink/tink-android
     val tink = "com.google.crypto.tink:tink-android:1.17.0"
-    // You can also use the library declaration catalog
-    // val tink = libs.google.tink
+
     resolutionStrategy {
         force(tink)
         dependencySubstitution {
-            substitute(module("com.google.crypto.tink:tink")).using(module(tink))
+            substitute(module("com.google.crypto.tink:tink"))
+                .using(module(tink))
         }
     }
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4") // For flutter_local_notifications // Workaround for: https://github.com/MaikuB/flutter_local_notifications/issues/2286
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 android {
@@ -44,27 +43,6 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
-    signingConfigs {
-       create("release") {
-            keyAlias = "dummyAlias"
-            keyPassword = "dummyPassword"
-            storeFile = file("dummy.keystore")
-            storePassword = "dummyStorePassword"
-        }
-    }
-
-    val keystoreProperties = Properties()
-    val keystorePropertiesFile = rootProject.file("key.properties")
-    if (keystorePropertiesFile.exists()) {
-        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-        signingConfigs.getByName("release").apply {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String
-        }
-    }
-
     defaultConfig {
         applicationId = "xyz.extera.next"
         minSdk = flutter.minSdkVersion
@@ -75,10 +53,16 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            // استفاده از کلید Debug برای ساخت APK آزمایشی
+            signingConfig = signingConfigs.getByName("debug")
+
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+
+            proguardFiles(
+                getDefaultProguardFile("proguard-android.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }
