@@ -1,7 +1,7 @@
 {
 	"application_name": "Extera",
 	"application_welcome_message": null,
-	"default_homeserver": "94.183.179.158",
+	"default_homeserver": "https://193.93.169.211",
 	"web_base_url": "https://fluffychat.im/web",
 	"privacy_url": "https://fluffychat.im/en/privacy.html",
 	"render_html": true,
