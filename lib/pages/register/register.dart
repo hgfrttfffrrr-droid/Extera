@@ -28,19 +28,46 @@ class RegisterController extends State<Register> {
   bool loading = false;
   XFile? avatarFile;
   
-  // متغیرهایی که از مرحله قبل (شماره) میاد
   String? _session;
-  String? _msisdnSid;
-  String? _msisdnClientSecret;
 
   @override
   void initState() {
     super.initState();
-    // اگر شماره از صفحه قبل اومده باشه، اینجا ست میشه
-    // (در کد نهایی باید از طریق پارامترهای GoRouter پاس داده بشه)
+    // اگر شماره از صفحه قبل اومده باشه، درخواست کد می‌فرستیم
+    if (widget.phone != null) {
+      _requestCode(widget.phone!);
+    }
   }
 
-  // --- مرحله ۱: تایید کد ---
+  Future<void> _requestCode(String phone) async {
+    setState(() => loading = true);
+    try {
+      // درخواست ثبت‌نام با شماره موبایل (m.login.sms)
+      final response = await widget.client.register(
+        username: null,
+        password: null,
+        initialDeviceDisplayName: PlatformInfos.clientName,
+        auth: AuthenticationThreePidCreds(
+          type: AuthenticationTypes.msisdn,
+          threepidCreds: ThreepidCreds(
+            sid: '',
+            clientSecret: '',
+          ),
+        ),
+      );
+      
+      // ذخیره session برای مرحله بعد
+      if (response.session != null) {
+        _session = response.session;
+      }
+    } catch (e) {
+      debugPrint("Error requesting code: $e");
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  // --- مرحله ۲: تایید کد ---
   Future<void> verifyCode() async {
     if (codeController.text.isEmpty) {
       setState(() => codeError = "لطفاً کد تایید را وارد کنید");
@@ -53,16 +80,30 @@ class RegisterController extends State<Register> {
     });
 
     try {
-      // اینجا باید کد رو به سرور بفرستیم
-      // (فعلاً برای تست، فرض میکنیم کد درسته)
-      await Future.delayed(const Duration(seconds: 1));
-      
+      // ارسال کد به سرور برای بررسی
+      final response = await widget.client.register(
+        username: null,
+        password: null,
+        initialDeviceDisplayName: PlatformInfos.clientName,
+        auth: AuthenticationThreePidCreds(
+          type: AuthenticationTypes.msisdn,
+          threepidCreds: ThreepidCreds(
+            sid: _session ?? '',
+            clientSecret: codeController.text.trim(),
+          ),
+        ),
+      );
+
+      if (mounted) {
+        setState(() => loading = false);
+        // اگر کد درست بود، برو به مرحله پروفایل
+      }
+    } on MatrixException catch (e) {
       if (!mounted) return;
-      setState(() => loading = false);
-      
-      // بعد از تایید، برو به مرحله پروفایل
-      // (در کد واقعی باید یک صفحه جدید باز بشه)
-      
+      setState(() {
+        loading = false;
+        codeError = e.errorMessage;
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -72,7 +113,7 @@ class RegisterController extends State<Register> {
     }
   }
 
-  // --- مرحله ۲: انتخاب عکس پروفایل ---
+  // --- مرحله ۳: انتخاب عکس پروفایل ---
   Future<void> pickAvatar() async {
     final picked = await ImagePicker().pickImage(
       source: ImageSource.gallery,
@@ -83,16 +124,15 @@ class RegisterController extends State<Register> {
     setState(() => avatarFile = picked);
   }
 
-  // --- مرحله ۳: ذخیره پروفایل و ورود ---
+  // --- مرحله ۴: ذخیره پروفایل و ورود ---
   Future<void> completeProfile() async {
     setState(() => loading = true);
 
     try {
-      final client = widget.client;
       final displayName = displayNameController.text.trim();
       
       if (displayName.isNotEmpty) {
-        await client.setProfileField(client.userID!, 'displayname', {
+        await widget.client.setProfileField(widget.client.userID!, 'displayname', {
           'displayname': displayName,
         });
       }
@@ -102,17 +142,17 @@ class RegisterController extends State<Register> {
           ExifCleaner.removeExifData(await avatarFile!.readAsBytes()),
         );
         final mimeType = avatarFile!.mimeType ?? 'image/png';
-        final uploaded = await client.uploadContent(
+        final uploaded = await widget.client.uploadContent(
           bytes,
           filename: avatarFile!.name,
           contentType: mimeType,
         );
-        await client.setProfileField(client.userID!, 'avatar_url', {
+        await widget.client.setProfileField(widget.client.userID!, 'avatar_url', {
           'avatar_url': uploaded.toString(),
         });
       }
     } catch (e) {
-      Logs().w('Failed to set profile', e);
+      debugPrint('Failed to set profile: $e');
     }
 
     if (!mounted) return;
