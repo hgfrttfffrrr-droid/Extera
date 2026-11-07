@@ -42,7 +42,7 @@ class RegisterController extends State<Register> {
   Future<void> _requestCode(String phone) async {
     setState(() => loading = true);
     try {
-      // درخواست ثبت‌نام با شماره موبایل (m.login.sms)
+      // درخواست ثبت‌نام با شماره موبایل
       final response = await widget.client.register(
         username: null,
         password: null,
@@ -56,10 +56,11 @@ class RegisterController extends State<Register> {
         ),
       );
       
-      // ذخیره session برای مرحله بعد
-      if (response.session != null) {
-        _session = response.session;
-      }
+      // --- خطوط session کامنت شدند (چون در نسخه جدید وجود نداره) ---
+      // if (response.session != null) {
+      //   _session = response.session;
+      // }
+      
     } catch (e) {
       debugPrint("Error requesting code: $e");
     } finally {
@@ -81,7 +82,7 @@ class RegisterController extends State<Register> {
 
     try {
       // ارسال کد به سرور برای بررسی
-      final response = await widget.client.register(
+      await widget.client.register(
         username: null,
         password: null,
         initialDeviceDisplayName: PlatformInfos.clientName,
