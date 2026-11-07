@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
+import 'package:http/io_client.dart';
 import 'package:matrix/matrix.dart';
 
 import 'package:extera_next/config/app_config.dart';
@@ -32,8 +34,12 @@ class LoginController extends State<Login> {
   void initState() {
     super.initState();
     _client = widget.client;
-    // --- قبول کردن گواهی SSL خودامضا برای اتصال به سرور ---
-    _client.httpClient.badCertificateCallback = (cert, host, port) => true;
+
+    // --- تنظیم IOClient برای قبول گواهی SSL خودامضا ---
+    final httpClient = HttpClient();
+    httpClient.badCertificateCallback = (cert, host, port) => true;
+    _client.httpClient = IOClient(httpClient);
+
     // تنظیم سرور پیش‌فرض
     _client.homeserver = Uri.parse(AppConfig.defaultHomeserver);
   }
