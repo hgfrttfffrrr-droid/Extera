@@ -25,7 +25,6 @@ class LoginController extends State<Login> {
   String? phoneError;
   bool loading = false;
 
-  // --- متغیر برای نگه‌داری کلاینت ---
   late Client _client;
   String? _session;
 
@@ -33,7 +32,6 @@ class LoginController extends State<Login> {
   void initState() {
     super.initState();
     _client = widget.client;
-    // تنظیم سرور پیش‌فرض
     _client.homeserver = Uri.parse(AppConfig.defaultHomeserver);
   }
 
@@ -58,7 +56,7 @@ class LoginController extends State<Login> {
 
     try {
       // درخواست ثبت‌نام با شماره موبایل
-      final response = await _client.register(
+      await _client.register(
         username: null,
         password: null,
         initialDeviceDisplayName: PlatformInfos.clientName,
@@ -71,13 +69,14 @@ class LoginController extends State<Login> {
         ),
       );
 
-      // اگر سرور نیاز به کد تایید داشت، session رو ذخیره کن و به صفحه بعد برو
-      if (response.session != null) {
-        _session = response.session;
-        if (mounted) {
-          // TODO: رفتن به صفحه کد تایید
-        }
-      }
+      // --- خطوط مربوط به session کامنت شدند ---
+      // if (response.session != null) {
+      //   _session = response.session;
+      //   if (mounted) {
+      //     // TODO: رفتن به صفحه کد تایید
+      //   }
+      // }
+      
     } on MatrixException catch (exception) {
       setState(() => phoneError = exception.errorMessage);
     } catch (exception) {
