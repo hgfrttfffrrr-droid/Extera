@@ -23,12 +23,26 @@ jobs:
             https://github.com/ExteraApp/matrix-dart-sdk.git \
             ../matrix-dart-sdk
 
-      - name: Upgrade Gradle Wrapper
+      - name: Upgrade Gradle
         run: |
           sed -i -E \
             's/gradle-[0-9]+(\.[0-9]+){1,2}-(all|bin)\.zip/gradle-8.14.3-\2.zip/' \
             android/gradle/wrapper/gradle-wrapper.properties
-          cat android/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Upgrade Android Gradle Plugin
+        run: |
+          FILE=""
+          if [ -f android/settings.gradle.kts ]; then
+            FILE="android/settings.gradle.kts"
+          elif [ -f android/settings.gradle ]; then
+            FILE="android/settings.gradle"
+          else
+            echo "Settings file not found"
+            exit 1
+          fi
+
+          sed -i 's/8\.9\.1/8.11.1/g' "$FILE"
+          grep -n 'com.android.application' "$FILE"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -42,16 +56,13 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Check Flutter
-        run: flutter doctor -v
-
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Release APKs
+      - name: Build APK
         run: flutter build apk --release --split-per-abi
 
-      - name: Upload APK files
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Extera-Android-APKs
