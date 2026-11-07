@@ -23,6 +23,13 @@ jobs:
             https://github.com/ExteraApp/matrix-dart-sdk.git \
             ../matrix-dart-sdk
 
+      - name: Upgrade Gradle Wrapper
+        run: |
+          sed -i -E \
+            's/gradle-[0-9]+(\.[0-9]+){1,2}-(all|bin)\.zip/gradle-8.14.3-\2.zip/' \
+            android/gradle/wrapper/gradle-wrapper.properties
+          cat android/gradle/wrapper/gradle-wrapper.properties
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
