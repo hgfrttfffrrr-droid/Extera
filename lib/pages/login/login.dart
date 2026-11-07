@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:matrix/matrix.dart';
 
+import 'package:extera_next/config/app_config.dart';
 import 'package:extera_next/generated/l10n/l10n.dart';
 import 'package:extera_next/utils/localized_exception_extension.dart';
 import 'package:extera_next/widgets/matrix.dart';
@@ -23,6 +24,18 @@ class LoginController extends State<Login> {
   final TextEditingController phoneController = TextEditingController();
   String? phoneError;
   bool loading = false;
+
+  // --- متغیر برای نگه‌داری کلاینت ---
+  late Client _client;
+  String? _session;
+
+  @override
+  void initState() {
+    super.initState();
+    _client = widget.client;
+    // تنظیم سرور پیش‌فرض
+    _client.homeserver = Uri.parse(AppConfig.defaultHomeserver);
+  }
 
   Future<void> registerWithPhone() async {
     if (phoneController.text.isEmpty) {
@@ -44,10 +57,8 @@ class LoginController extends State<Login> {
     });
 
     try {
-      final client = await Matrix.of(context).getLoginClient();
-      
       // درخواست ثبت‌نام با شماره موبایل
-      await client.register(
+      final response = await _client.register(
         username: null,
         password: null,
         initialDeviceDisplayName: PlatformInfos.clientName,
@@ -60,9 +71,12 @@ class LoginController extends State<Login> {
         ),
       );
 
-      if (mounted) {
-        // در صورت نیاز به کد تایید، به صفحه بعد برو
-        // (فعلاً برای سادگی، فرض می‌کنیم سرور قبول کرده)
+      // اگر سرور نیاز به کد تایید داشت، session رو ذخیره کن و به صفحه بعد برو
+      if (response.session != null) {
+        _session = response.session;
+        if (mounted) {
+          // TODO: رفتن به صفحه کد تایید
+        }
       }
     } on MatrixException catch (exception) {
       setState(() => phoneError = exception.errorMessage);
