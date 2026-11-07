@@ -69,56 +69,28 @@ abstract class AppRoutes {
       (Matrix.of(context).currentBundle?.isNotEmpty ?? false) &&
           Matrix.of(context).client.isLogged()
       ? null
-      : '/home';
+      : '/login';
 
   AppRoutes();
 
   static final List<RouteBase> routes = [
+    // --- مسیر اصلی: مستقیم برو به صفحه ورود (شماره موبایل) ---
     GoRoute(
       path: '/',
       redirect: (context, state) =>
           (Matrix.of(context).currentBundle?.isNotEmpty ?? false) &&
               Matrix.of(context).client.isLogged()
           ? '/rooms'
-          : '/home',
+          : '/login',
     ),
+    // --- صفحه ورود (شماره موبایل) ---
     GoRoute(
-      path: '/home',
-      pageBuilder: (context, state) =>
-          defaultPageBuilder(context, state, const IntroPage()),
+      path: '/login',
+      pageBuilder: (context, state) {
+        final client = Matrix.of(context).client;
+        return defaultPageBuilder(context, state, Login(client: client));
+      },
       redirect: loggedInRedirect,
-      routes: [
-        GoRoute(
-          path: 'sign_in',
-          pageBuilder: (context, state) =>
-              defaultPageBuilder(context, state, SignInPage(signUp: false)),
-          redirect: loggedInRedirect,
-        ),
-        GoRoute(
-          path: 'sign_up',
-          pageBuilder: (context, state) =>
-              defaultPageBuilder(context, state, SignInPage(signUp: true)),
-          redirect: loggedInRedirect,
-        ),
-        GoRoute(
-          path: 'login',
-          pageBuilder: (context, state) => defaultPageBuilder(
-            context,
-            state,
-            Login(client: state.extra as Client),
-          ),
-          redirect: loggedInRedirect,
-        ),
-        GoRoute(
-          path: 'register',
-          pageBuilder: (context, state) => defaultPageBuilder(
-            context,
-            state,
-            Register(client: state.extra as Client),
-          ),
-          redirect: loggedInRedirect,
-        ),
-      ],
     ),
     GoRoute(
       path: '/logs',
@@ -136,6 +108,7 @@ abstract class AppRoutes {
       pageBuilder: (context, state) =>
           defaultPageBuilder(context, state, const BootstrapPage()),
     ),
+    // --- مسیرهای اضافی (برای زمانی که کاربر لاگین کرده) ---
     GoRoute(
       path: '/addaccount',
       redirect: loggedOutRedirect,
@@ -175,9 +148,6 @@ abstract class AppRoutes {
       ],
     ),
     ShellRoute(
-      // Never use a transition on the shell route. Changing the PageBuilder
-      // here based on a MediaQuery causes the child to briefly be rendered
-      // twice with the same GlobalKey, blowing up the rendering.
       pageBuilder: (context, state, child) => noTransitionPageBuilder(
         context,
         state,
