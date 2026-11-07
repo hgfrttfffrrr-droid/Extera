@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:extera_next/generated/l10n/l10n.dart';
@@ -37,8 +38,9 @@ class RegisterView extends StatelessWidget {
                   CircleAvatar(
                     radius: 60,
                     backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    // --- تغییر اصلی: استفاده از File به جای XFile ---
                     backgroundImage: controller.avatarFile != null
-                        ? FileImage(controller.avatarFile!)
+                        ? FileImage(File(controller.avatarFile!.path))
                         : null,
                     child: controller.avatarFile == null
                         ? Icon(
