@@ -9,7 +9,6 @@ import 'package:matrix/matrix.dart';
 
 import 'package:extera_next/config/app_config.dart';
 import 'package:extera_next/generated/l10n/l10n.dart';
-import 'package:extera_next/utils/localized_exception_extension.dart';
 import 'package:extera_next/widgets/matrix.dart';
 import '../../utils/platform_infos.dart';
 import 'login_view.dart';
@@ -63,7 +62,13 @@ class LoginController extends State<Login> {
     });
 
     try {
-      // رفتن به صفحه ثبت‌نام (کد تایید و نام و عکس) و پاس دادن شماره و کلاینت
+      // --- تست اتصال به سرور ---
+      // اینجا فقط چک می‌کنیم که آیا به سرور وصل می‌شه یا نه
+      final versions = await _client.checkHomeserver(_client.homeserver!);
+      
+      debugPrint("Connected to server: $versions");
+
+      // اگر وصل شد، برو به صفحه بعد
       if (mounted) {
         context.go('/addaccount/register', extra: {
           'client': _client,
@@ -71,7 +76,8 @@ class LoginController extends State<Login> {
         });
       }
     } catch (exception) {
-      setState(() => phoneError = exception.toString());
+      // اگر خطا داد، پیام خطا رو نشون بده
+      setState(() => phoneError = "خطا در اتصال: ${exception.toString()}");
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -85,15 +91,4 @@ class LoginController extends State<Login> {
 
   @override
   Widget build(BuildContext context) => LoginView(this);
-}
-
-extension on String {
-  static final RegExp _phoneRegex = RegExp(
-    r'^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$',
-  );
-  static final RegExp _emailRegex = RegExp(r'(.+)@(.+)\.(.+)');
-
-  bool get isEmail => _emailRegex.hasMatch(this);
-
-  bool get isPhoneNumber => _phoneRegex.hasMatch(this);
 }
