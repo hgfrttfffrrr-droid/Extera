@@ -18,7 +18,8 @@ class SignInViewModel extends ValueNotifier<SignInState> {
 
   SignInViewModel(this.matrixService, {required this.signUp})
     : super(SignInState()) {
-    refreshPublicHomeservers();
+    // به جای دانلود لیست سرورها، مستقیم فقط سرور خودمان را تنظیم می‌کنیم
+    _setupCustomHomeserver();
     filterTextController.addListener(_filterHomeservers);
   }
 
@@ -29,76 +30,24 @@ class SignInViewModel extends ValueNotifier<SignInState> {
     super.dispose();
   }
 
-  void _filterHomeservers() {
-    final filterText = filterTextController.text.trim().toLowerCase();
-    final filteredPublicHomeservers =
-        value.publicHomeservers.data
-            ?.where(
-              (homeserver) =>
-                  homeserver.name?.toLowerCase().contains(filterText) ?? false,
-            )
-            .toList() ??
-        [];
-    if (filterText.length >= 3 &&
-        (filterText.contains('.') || filterText == 'localhost') &&
-        Uri.tryParse(filterText) != null &&
-        !filteredPublicHomeservers.any(
-          (homeserver) => homeserver.name == filterText,
-        )) {
-      filteredPublicHomeservers.add(PublicHomeserverData(name: filterText));
-    }
-
-    value = value.copyWith(
-      filteredPublicHomeservers: filteredPublicHomeservers,
-    );
-  }
-
-  Future<void> refreshPublicHomeservers() async {
-    value = value.copyWith(publicHomeservers: AsyncSnapshot.waiting());
+  // --- تابع جدید برای تنظیم سرور اختصاصی ---
+  void _setupCustomHomeserver() {
     final defaultHomeserverData = PublicHomeserverData(
       name: AppSettings.defaultHomeserver.value,
     );
-    try {
-      final client = await matrixService.getLoginClient();
-      final response = await client.httpClient.get(AppConfig.homeserverList);
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final homeserverJsonList = json['public_servers'] as List;
+    
+    // فقط سرور خودمان را در لیست قرار می‌دهیم
+    value = value.copyWith(
+      selectedHomeserver: defaultHomeserverData,
+      publicHomeservers: AsyncSnapshot.withData(ConnectionState.done, [
+        defaultHomeserverData,
+      ]),
+      filteredPublicHomeservers: [defaultHomeserverData],
+    );
+  }
 
-      final publicHomeservers = homeserverJsonList
-          .map((json) => PublicHomeserverData.fromJson(json))
-          .toList();
-
-      if (signUp) {
-        publicHomeservers.removeWhere((server) {
-          return server.regMethod == null;
-        });
-      }
-
-      final defaultServer = publicHomeservers.singleWhereOrNull(
-        (server) => server.name == AppSettings.defaultHomeserver.value,
-      );
-
-      if (defaultServer == null) {
-        publicHomeservers.insert(0, defaultHomeserverData);
-      }
-
-      value = value.copyWith(
-        selectedHomeserver: value.selectedHomeserver ?? publicHomeservers.first,
-        publicHomeservers: AsyncSnapshot.withData(
-          ConnectionState.done,
-          publicHomeservers,
-        ),
-      );
-    } catch (e, s) {
-      Logs().w('Unable to fetch public homeservers...', e, s);
-      value = value.copyWith(
-        selectedHomeserver: defaultHomeserverData,
-        publicHomeservers: AsyncSnapshot.withData(ConnectionState.done, [
-          defaultHomeserverData,
-        ]),
-      );
-    }
-    _filterHomeservers();
+  void _filterHomeservers() {
+    // چون فقط یک سرور داریم، فیلتر نیازی نیست، ولی برای جلوگیری از خطا خالی می‌گذاریم
   }
 
   void selectHomeserver(PublicHomeserverData? publicHomeserverData) {
